@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { JoinChannelResponse, ChannelMessage } from "../lib/types";
 import * as api from "../lib/api";
-import { joinAudioChannel, leaveAudioChannel, onSpeakingChange } from "../lib/agora";
+import { joinAudioChannel, leaveAudioChannel, onSpeakingChange, setRemoteVolume } from "../lib/agora";
 
 interface RoomState {
   // Connection state
@@ -9,6 +9,7 @@ interface RoomState {
   channelId: string | null;
   messages: ChannelMessage[];
   speakingUids: Set<number>;
+  volume: number;
   isJoining: boolean;
   error: string | null;
 
@@ -16,6 +17,7 @@ interface RoomState {
   join: (channelId: string) => Promise<void>;
   leave: () => Promise<void>;
   sendReaction: (emoji: string) => Promise<void>;
+  setVolume: (volume: number) => void;
 }
 
 // Polling intervals — stored outside React so they persist across navigations
@@ -36,6 +38,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   channelId: null,
   messages: [],
   speakingUids: new Set(),
+  volume: 100,
   isJoining: false,
   error: null,
 
@@ -134,5 +137,10 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     if (cid) {
       api.sendReaction(cid, emoji).catch(() => {});
     }
+  },
+
+  setVolume: (volume: number) => {
+    set({ volume });
+    setRemoteVolume(volume);
   },
 }));

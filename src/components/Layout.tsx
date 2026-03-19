@@ -143,6 +143,8 @@ function NowPlayingBar() {
   const channelId = useRoomStore((s) => s.channelId);
   const leave = useRoomStore((s) => s.leave);
   const speakingUids = useRoomStore((s) => s.speakingUids);
+  const volume = useRoomStore((s) => s.volume);
+  const setVolume = useRoomStore((s) => s.setVolume);
 
   if (!channel || !channelId) return null;
 
@@ -174,6 +176,33 @@ function NowPlayingBar() {
           </span>
         </div>
       </button>
+
+      <div style={npStyles.volumeControl}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: volume === 0 ? "var(--text-tertiary)" : "var(--text-secondary)", flexShrink: 0 }}>
+          {volume === 0 ? (
+            <>
+              <path d="M11 5L6 9H2v6h4l5 4V5z" />
+              <line x1="23" y1="9" x2="17" y2="15" />
+              <line x1="17" y1="9" x2="23" y2="15" />
+            </>
+          ) : (
+            <>
+              <path d="M11 5L6 9H2v6h4l5 4V5z" />
+              {volume > 0 && <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />}
+              {volume > 50 && <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />}
+            </>
+          )}
+        </svg>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={volume}
+          onChange={(e) => setVolume(Number(e.target.value))}
+          style={npStyles.volumeSlider}
+          title={`Volume: ${volume}%`}
+        />
+      </div>
 
       <button
         type="button"
@@ -338,6 +367,17 @@ const npStyles: Record<string, React.CSSProperties> = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap" as const,
+  },
+  volumeControl: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  },
+  volumeSlider: {
+    width: 80,
+    height: 4,
+    cursor: "pointer",
+    accentColor: "var(--accent)",
   },
   leaveBtn: {
     width: 32,

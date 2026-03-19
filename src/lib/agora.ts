@@ -6,6 +6,7 @@ import AgoraRTC, {
 AgoraRTC.setLogLevel(2); // warnings + errors for debugging
 
 let client: IAgoraRTCClient | null = null;
+let currentVolume = 100; // 0–100, applied to all remote tracks
 
 // Track which UIDs are currently speaking (volume above threshold)
 let speakingUids: Set<number> = new Set();
@@ -135,6 +136,7 @@ export async function joinAudioChannel(
     if (mediaType === "audio" && client) {
       console.log(`Agora: subscribing to audio from user ${user.uid}`);
       await client.subscribe(user, "audio");
+      user.audioTrack?.setVolume(currentVolume);
       user.audioTrack?.play();
     }
   });
@@ -174,6 +176,15 @@ export async function joinAudioChannel(
       notifySpeaking(speakingUids);
     }
   });
+}
+
+/** Set playback volume for all remote audio tracks (0–100). */
+export function setRemoteVolume(volume: number): void {
+  currentVolume = volume;
+  if (!client) return;
+  for (const user of client.remoteUsers) {
+    user.audioTrack?.setVolume(volume);
+  }
 }
 
 export async function leaveAudioChannel(): Promise<void> {
